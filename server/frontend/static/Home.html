@@ -1,28 +1,36 @@
 <html>
-<head>
+<head><title>Best Cars | Home</title><meta name="viewport" content="width=device-width,initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="static/style.css">
   <link rel="stylesheet" href="static/bootstrap.min.css">
 <script>
-
-const logout = async (e) => {
-//Include the code for logout here.
-};
-
-let checkSession = ()=>{
-  let curr_user = sessionStorage.getItem("username");
-
-  if (curr_user && curr_user !== "") {
-    document.getElementById("loginlogout").innerHTML = 
-    '<span class="homepage_links">' + curr_user +'</span>' +
-    '<a class="homepage_links" onclick="logout()" href="/">Logout</a>'
-  } else {
-    document.getElementById("loginlogout").innerHTML = 
-    '<a class="homepage_links" href="/login">Login</a>'+
-    '<a class="homepage_links"  href="/register">Register</a>'
-  }
- }
+async function logout(event) {
+  if (event) event.preventDefault();
+  try {
+    const response = await fetch("/djangoapp/logout", {credentials:"same-origin"});
+    if (!response.ok) throw new Error("Logout failed. Please try again.");
+    sessionStorage.removeItem("username");
+    window.location.assign("/");
+  } catch (error) {document.getElementById("auth-error").textContent=error.message;}
+}
+async function checkSession() {
+  const panel=document.getElementById("loginlogout");
+  try {
+    const response=await fetch("/djangoapp/session",{credentials:"same-origin"});
+    if (!response.ok) throw new Error("Could not check your session.");
+    const data=await response.json();
+    panel.replaceChildren();
+    if (data.authenticated) {
+      sessionStorage.setItem("username",data.userName);
+      const name=document.createElement("span"); name.textContent=data.userName; name.className="homepage_links"; panel.appendChild(name);
+      const link=document.createElement("a");link.textContent="Logout";link.href="/djangoapp/logout";link.className="homepage_links";link.addEventListener("click",logout);panel.appendChild(link);
+    } else {
+      sessionStorage.removeItem("username");
+      [["Login","/login/"],["Register","/register/"]].forEach(([text,href])=>{const link=document.createElement("a");link.textContent=text;link.href=href;link.className="homepage_links";panel.appendChild(link);});
+    }
+  } catch(error) {document.getElementById("auth-error").textContent=error.message;}
+}
 </script>
 </head>
 <body onload="checkSession()">
@@ -50,7 +58,7 @@ let checkSession = ()=>{
         </span>
     </div>
   </div>
-</nav>
+</nav><p id="auth-error" role="alert"></p>
 <div style="display: flex;flex-direction: column;">
 <div class="card" style="width: 50%;margin-top: 50px;align-self: center;">
   <img src="static/car_dealership.jpg" class="card-img-top" alt="...">
@@ -62,3 +70,4 @@ let checkSession = ()=>{
 </div>
 </body>
 </html>
+
