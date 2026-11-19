@@ -20,10 +20,13 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [
+    path('login/', TemplateView.as_view(template_name="index.html"), name='login-page'),
+    path('register/', TemplateView.as_view(template_name="index.html"), name='register-page'),
     path('about/', TemplateView.as_view(template_name="About.html"), name='about'),
     path('contact/', TemplateView.as_view(template_name="Contact.html"), name='contact'),
     path('admin/', admin.site.urls),
     path('djangoapp/', include('djangoapp.urls')),
     path('', TemplateView.as_view(template_name="Home.html")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
 
