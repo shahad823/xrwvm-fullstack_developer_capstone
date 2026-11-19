@@ -45,3 +45,88 @@ class UserManagementTests(TestCase):
             with self.subTest(path=path):
                 self.assertEqual(self.client.get(path).status_code, 200)
 
+
+from unittest.mock import patch, Mock
+from django.core.exceptions import ValidationError
+from .models import CarMake, CarModel
+from .populate import initiate
+from .restapis import get_request, post_review, analyze_review_sentiments, BackendError
+import requests
+
+
+class BackendTests(TestCase):
+    def setUp(self):
+        initiate()
+
+    def test_seed_relationships_and_validation(self):
+        initiate()
+        self.assertEqual(CarMake.objects.count(), 5)
+        self.assertEqual(CarModel.objects.count(), 15)
+        car = CarModel.objects.first()
+        self.assertIn(car.car_make.name, str(car))
+        car.year = 2014
+        with self.assertRaises(ValidationError):
+            car.full_clean()
+        from django.contrib import admin
+        self.assertIn(CarMake, admin.site._registry)
+        self.assertIn(CarModel, admin.site._registry)
+
+    def test_car_route(self):
+        self.assertEqual(len(self.client.get('/djangoapp/get_cars').json()['CarModels']), 15)
+
+    @patch('djangoapp.views.get_request')
+    def test_dealer_routes(self, get):
+        get.return_value = [{'id': 3, 'state': 'Kansas'}]
+        for route, endpoint, key in [
+            ('get_dealers', '/fetchDealers', 'dealers'),
+            ('get_dealers/Kansas', '/fetchDealers/Kansas', 'dealers'),
+            ('dealer/3', '/fetchDealer/3', 'dealer'),
+        ]:
+            with self.subTest(route=route):
+                result = self.client.get('/djangoapp/' + route)
+                self.assertEqual(result.status_code, 200)
+                self.assertEqual(result.json()[key][0]['id'], 3)
+                get.assert_called_with(endpoint)
+        get.side_effect = BackendError()
+        self.assertEqual(self.client.get('/djangoapp/get_dealers').status_code, 502)
+
+    @patch('djangoapp.views.analyze_review_sentiments')
+    @patch('djangoapp.views.get_request')
+    def test_reviews_include_sentiment(self, get, analyze):
+        get.return_value = [{'review': 'Fantastic services'}]
+        analyze.return_value = {'sentiment': 'positive'}
+        result = self.client.get('/djangoapp/reviews/dealer/3')
+        self.assertEqual(result.json()['reviews'][0]['sentiment'], 'positive')
+        get.assert_called_once_with('/fetchReviews/dealer/3')
+        analyze.assert_called_once_with('Fantastic services')
+
+    @patch('djangoapp.views.post_review')
+    def test_review_authorization_and_author(self, post):
+        data = {'name': 'Spoofed', 'dealership': 3, 'review': 'Fantastic services', 'purchase': True,
+                'purchase_date': '2023-10-01', 'car_make': 'Toyota', 'car_model': 'Camry', 'car_year': 2023}
+        self.assertEqual(self.client.post('/djangoapp/add_review', data, content_type='application/json').status_code, 403)
+        user = User.objects.create_user(username='reviewer', password='TestReview123!')
+        self.client.force_login(user)
+        post.return_value = {'id': 101}
+        result = self.client.post('/djangoapp/add_review', data, content_type='application/json')
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(post.call_args.args[0]['name'], 'reviewer')
+        data['car_model'] = 'Unknown'
+        self.assertEqual(self.client.post('/djangoapp/add_review', data, content_type='application/json').status_code, 400)
+        self.assertEqual(self.client.get('/djangoapp/add_review').status_code, 405)
+
+    @patch('djangoapp.restapis.requests.get')
+    @patch('djangoapp.restapis.requests.post')
+    def test_http_clients_and_upstream_errors(self, post, get):
+        response = Mock()
+        response.json.return_value = [{'id': 3}]
+        get.return_value = post.return_value = response
+        self.assertEqual(get_request('/fetchDealers', city='New York'), [{'id': 3}])
+        self.assertEqual(get.call_args.kwargs['params'], {'city': 'New York'})
+        post_review({'review': 'Great'})
+        self.assertEqual(post.call_args.kwargs['json'], {'review': 'Great'})
+        analyze_review_sentiments('Great / friendly?')
+        self.assertIn('Great%20%2F%20friendly%3F', get.call_args.args[0])
+        get.side_effect = requests.Timeout()
+        with self.assertRaises(BackendError):
+            get_request('/fetchDealers')
