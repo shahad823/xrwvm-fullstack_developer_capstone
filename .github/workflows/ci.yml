@@ -33,7 +33,7 @@ jobs:
       - name: Build React client
         working-directory: server/frontend
         run: |
-          npm ci
+          npm install
           CI=false npm run build
 
       - name: Run Django checks and tests
