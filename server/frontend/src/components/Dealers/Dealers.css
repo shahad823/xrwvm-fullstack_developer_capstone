@@ -1,88 +1,19 @@
-table{
-    margin:5px;
-    padding:10px;
-    border: grey solid 1px;
-    width:100%
-  }
-  
-  td{
-    padding:10px;
-    align-self: center;
-    border:solid grey .5px;
-    text-align: center;
-    font-size: large;
-  }
-  
-  .review_panel{
-    display: flex;
-    flex-direction: column;
-    border: solid grey;
-    position: relative;
-    height:7cm;
-    width:6cm;
-    overflow-y: scroll;
-    padding:.3cm;
-    padding-top: 0%;
-    border-radius:10px; 
-    box-shadow: 0px 1px 12px rgba(0, 0, 0, 0.5);
-    margin-bottom: .5cm;
-    justify-content: space-between;
-  }
-
-  .postreview{
-    margin:20px;
-    padding:10px;
-    font-size: larger;
-  }
-
-  th{
-    padding:5px;
-    align-self: center;
-    text-align: center;
-    font-size: large;
-    margin-bottom: 1cm;
-    vertical-align: middle;
-    color: black;
-  }
-
-  .reviews_panel {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    column-gap: 1cm;
-    overflow-wrap: normal;
-    margin-top: 1cm;
-    align-items: flex-start;
-  }
-
-  .reviewer {
-    margin: 10px; /* Optional margin for spacing */
-    font-style: italic;
-    color: gray;
-    font-size: small;
-}
-
-.review {
-  margin-top: 1.5cm;
-}
-
-.emotion_icon {
-  align-self: center;
-  position:fixed;
-    width:40px;
-    height:40px;
-    background-color:#0C9;
-    color:#FFF;
-    border-radius:50px;
-    text-align:center;
-    box-shadow: 2px 2px 3px #999;  
-}
-
-.review_icon {
-  width:40px;
-}
-
-.review_icon:hover {
-  transform: scale(1.1);
-  border: solid lightgray;
-}
+.dealer-page { max-width: 1180px; margin: 32px auto; padding: 0 24px 48px; color: #173447; }
+.dealer-page h1 { margin: 24px 0 12px; }
+.dealer-page h2 { margin-top: 32px; }
+.dealer-table { overflow-x: auto; margin-top: 24px; }
+.dealer-table table { width: 100%; border-collapse: collapse; }
+.dealer-table th, .dealer-table td { padding: 14px 12px; text-align: left; border-bottom: 1px solid #dce5ea; }
+.dealer-table th { background: #edf6f7; }
+.dealer-page select, .review-form input, .review-form textarea { padding: 10px; border: 1px solid #819ba9; border-radius: 5px; font: inherit; }
+.review-action { display: inline-block; padding: 10px 16px; border-radius: 5px; background: #087980; color: white; }
+.review-form { display: grid; gap: 12px; max-width: 640px; margin-top: 24px; }
+.review-form label { margin-top: 8px; font-weight: 600; }
+.review-form .postreview { min-height: 44px; padding: 12px 24px; margin-top: 12px; background: #087980; color: white; border: 0; border-radius: 5px; font: inherit; cursor: pointer; }
+.review-form button:disabled { opacity: .65; cursor: wait; }
+.dealer-page [role="alert"] { color: #a32020; }
+.reviews_panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 24px; }
+.review_panel { min-width: 0; padding: 20px; border: 1px solid #dce5ea; border-radius: 8px; background: #f8fbfc; overflow-wrap: anywhere; }
+.emotion_icon { width: 30px; height: 30px; object-fit: contain; vertical-align: middle; }
+.reviewer { color: #516977; font-size: .9rem; }
+@media (max-width: 640px) { .dealer-page { padding: 0 16px 32px; } .reviews_panel { grid-template-columns: 1fr; } }

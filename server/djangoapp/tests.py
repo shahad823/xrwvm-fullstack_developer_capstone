@@ -41,7 +41,7 @@ class UserManagementTests(TestCase):
         self.assertEqual(User.objects.count(), 0)
 
     def test_static_and_react_routes(self):
-        for path in ["/", "/about/", "/contact/", "/login/", "/register/"]:
+        for path in ["/", "/about/", "/contact/", "/login/", "/register/", "/dealers", "/dealer/3", "/postreview/3"]:
             with self.subTest(path=path):
                 self.assertEqual(self.client.get(path).status_code, 200)
 
