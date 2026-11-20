@@ -13,7 +13,7 @@ export async function authRequest(path, values) {
     body: JSON.stringify(values)
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error === "Already Registered" ? "That username is already registered. Please sign in." : data.error || "Please try again.");
+  if (!response.ok) throw new Error(data.error === "Already Registered" ? "That username is already registered. Please sign in." : data.error || data.message || "Please try again.");
   return data;
 }
 
